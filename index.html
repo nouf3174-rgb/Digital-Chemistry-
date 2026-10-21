@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الكيمياء الرقمية والبيانات الطيفية</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        panelBg: 'rgba(15, 23, 42, 0.75)',
+                        cardBg: 'rgba(30, 41, 59, 0.5)',
+                        cyanNeon: '#00f2fe',
+                        blueNeon: '#3b82f6',
+                        purpleNeon: '#a855f7',
+                        pinkNeon: '#ec4899',
+                        emeraldNeon: '#10b981'
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                        tajawal: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Styling */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 242, 254, 0.25);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 242, 254, 0.5);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 12px rgba(0, 242, 254, 0.6), 0 0 24px rgba(168, 85, 247, 0.4);
+        }
+
+        /* Laser Scan Line Animation */
+        .laser-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #00f2fe, #ec4899, transparent);
+            box-shadow: 0 0 15px #00f2fe, 0 0 25px #ec4899;
+            animation: laserScan 2s linear infinite;
+            display: none;
+            z-index: 30;
+        }
+
+        @keyframes laserScan {
+            0% { top: 0%; opacity: 0.9; }
+            50% { opacity: 1; }
+            100% { top: 100%; opacity: 0.9; }
+        }
+
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin-slow {
+            animation: spinSlow 12s linear infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyanNeon selection:text-black">
+
+    <!-- Background Glowing Ambient Lights -->
+    <div class="fixed top-0 left-1/4 w-96 h-96 bg-cyanNeon/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-purpleNeon/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
+
+    <!-- APP HEADER -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-cyanNeon/25 px-4 lg:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <button type="button" id="sidebarToggleBtn" onclick="toggleSidebar()" class="p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-cyanNeon transition-all border border-cyanNeon/30 hover:shadow-[0_0_15px_rgba(0,242,254,0.4)]">
+                    <i class="fa-solid fa-bars-staggered text-xl"></i>
+                </button>
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyanNeon via-purpleNeon to-pinkNeon flex items-center justify-center text-slate-950 font-bold text-xl shadow-[0_0_15px_rgba(0,242,254,0.5)]">
+                        <i class="fa-solid fa-atom animate-spin-slow"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm sm:text-base md:text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyanNeon via-purpleNeon to-pinkNeon font-cairo">
+                            الكيمياء الرقمية والبيانات الطيفية
+                        </h1>
+                        <p class="text-[10px] sm:text-xs text-slate-400 font-medium">أسبوع الكيمياء العربي</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Signature Header Badge -->
+            <div class="hidden sm:flex flex-col text-left border-r-2 border-cyanNeon/40 pr-3 mr-2">
+                <span class="text-[11px] text-cyanNeon font-bold">إعداد المهندستين:</span>
+                <span class="text-xs text-white font-extrabold">غزلان المشعوف وليان الميموني</span>
+                <span class="text-[10px] text-slate-400">الصف الثالث الثانوي – 3/8</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION SIDEBAR & OVERLAY -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+    <aside id="sidebar" class="fixed top-0 right-0 h-full w-80 glass-panel z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between border-l border-cyanNeon/30 shadow-2xl">
+        <div>
+            <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-atom text-cyanNeon text-xl"></i>
+                    <span class="font-cairo font-bold text-lg text-white">قائمة الأقسام</span>
+                </div>
+                <button type="button" onclick="toggleSidebar()" class="text-slate-400 hover:text-cyanNeon p-2 rounded-lg transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <nav class="p-4 space-y-2">
+                <button type="button" onclick="switchTab('home')" id="nav-home" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyanNeon">
+                    <i class="fa-solid fa-house w-6 text-center text-cyanNeon"></i>
+                    <span>الرئيسية</span>
+                </button>
+                <button type="button" onclick="switchTab('spectroscopy')" id="nav-spectroscopy" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyanNeon">
+                    <i class="fa-solid fa-wave-square w-6 text-center text-purpleNeon"></i>
+                    <span>المكتبة الطيفية</span>
+                </button>
+                <button type="button" onclick="switchTab('simulator')" id="nav-simulator" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyanNeon">
+                    <i class="fa-solid fa-microchip w-6 text-center text-pinkNeon"></i>
+                    <span>المحاكي الرقمي</span>
+                </button>
+                <button type="button" onclick="switchTab('comparison')" id="nav-comparison" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyanNeon">
+                    <i class="fa-solid fa-chart-line w-6 text-center text-blueNeon"></i>
+                    <span>المقارنة والإحصاء</span>
+                </button>
+                <button type="button" onclick="switchTab('applications')" id="nav-applications" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-slate-300 hover:bg-slate-800/80 hover:text-cyanNeon">
+                    <i class="fa-solid fa-capsules w-6 text-center text-emeraldNeon"></i>
+                    <span>التطبيقات العلمية</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Sidebar Student Credits -->
+        <div class="p-4 border-t border-slate-800 bg-slate-950/80">
+            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-cyanNeon/30 space-y-1.5">
+                <div class="text-[11px] text-cyanNeon font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>إعداد المهندستين:</span>
+                </div>
+                <div class="text-xs text-white font-extrabold">غزلان المشعوف وليان الميموني</div>
+                <div class="text-[11px] text-slate-400">الصف الثالث الثانوي – 3/8</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN APP CONTENT AREA -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-8 flex-1 z-10 w-full">
+
+        <!-- ==================== 1. TAB: HOME ==================== -->
+        <section id="tab-home" class="tab-content space-y-8">
+            <div class="relative rounded-3xl p-6 sm:p-10 glass-panel border border-cyanNeon/30 overflow-hidden">
+                <div class="max-w-3xl space-y-4 relative z-10">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyanNeon/10 border border-cyanNeon/30 text-cyanNeon text-xs font-bold">
+                        <i class="fa-solid fa-sparkles"></i>
+                        <span>ثورة الكيمياء الرقمية والبيانات الطيفية</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold font-cairo leading-tight text-white">
+                        استكشاف الجزيئات عبر <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyanNeon via-purpleNeon to-pinkNeon text-glow">التحليل الطيفي الذكي</span>
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        تُعد الكيمياء الرقمية العمود الفقري للابتكار الكيميائي الحديث، حيث تُمكّن العلماء والباحثين من فك شفرة البصمة الطيفية للمركبات الجزيئية باستخدام خوارزميات التعلم العميق والذكاء الاصطناعي، مما يحل التحليلات المعقدة في ثوانٍ بدلاً من أيام من الاختبارات المعملية التقليدية.
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-4">
+                        <button type="button" onclick="switchTab('simulator')" class="px-6 py-3 rounded-xl bg-gradient-to-r from-cyanNeon via-purpleNeon to-pinkNeon text-slate-950 font-bold hover:shadow-[0_0_25px_rgba(0,242,254,0.5)] transition-all text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i>
+                            <span>تشغيل المحاكي الرقمي</span>
+                        </button>
+                        <button type="button" onclick="switchTab('spectroscopy')" class="px-6 py-3 rounded-xl glass-card text-cyanNeon font-bold hover:bg-cyanNeon/10 transition-all text-sm border border-cyanNeon/30 flex items-center gap-2">
+                            <i class="fa-solid fa-book-open"></i>
+                            <span>استكشاف المكتبة الطيفية</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="p-5 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-cyanNeon">
+                    <div class="w-12 h-12 rounded-xl bg-cyanNeon/10 flex items-center justify-center text-cyanNeon text-xl">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black font-cairo text-white">99.4%</div>
+                        <div class="text-xs text-slate-400">دقة التحليل الجزيئي</div>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-purpleNeon">
+                    <div class="w-12 h-12 rounded-xl bg-purpleNeon/10 flex items-center justify-center text-purpleNeon text-xl">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black font-cairo text-white">0.2s</div>
+                        <div class="text-xs text-slate-400">سرعة معالجة الأطياف</div>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-pinkNeon">
+                    <div class="w-12 h-12 rounded-xl bg-pinkNeon/10 flex items-center justify-center text-pinkNeon text-xl">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black font-cairo text-white">+10,000</div>
+                        <div class="text-xs text-slate-400">عينات مرجعية رقمية</div>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl glass-card flex items-center gap-4 border-l-4 border-emeraldNeon">
+                    <div class="w-12 h-12 rounded-xl bg-emeraldNeon/10 flex items-center justify-center text-emeraldNeon text-xl">
+                        <i class="fa-solid fa-vial-circle-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black font-cairo text-white">100%</div>
+                        <div class="text-xs text-slate-400">لقط المجموعات الوظيفية</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-Step AI Pipeline -->
+            <div class="p-6 sm:p-8 rounded-3xl glass-panel border border-cyanNeon/30 space-y-6">
+                <div class="text-right">
+                    <h3 class="text-lg font-bold font-cairo text-cyanNeon flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project"></i>
+                        مسار عمل الكيمياء الرقمية والذكاء الاصطناعي (5-Step AI Pipeline)
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">مراحل قراءة وتحويل الأطياف الضوئية والكتلية إلى هيكل جزيئي مؤكد</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                    <div class="p-4 rounded-2xl glass-card text-center space-y-2 border border-cyanNeon/20">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-cyanNeon/10 text-cyanNeon font-bold flex items-center justify-center text-sm">1</div>
+                        <h4 class="font-bold text-xs text-white">1. الجمع</h4>
+                        <p class="text-[10px] text-slate-400">تسجيل الإشارات الكهرومغناطيسية من العينة</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl glass-card text-center space-y-2 border border-purpleNeon/20">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-purpleNeon/10 text-purpleNeon font-bold flex items-center justify-center text-sm">2</div>
+                        <h4 class="font-bold text-xs text-white">2. الرقمنة</h4>
+                        <p class="text-[10px] text-slate-400">تحويل الإشارات الضوئية إلى مصفوفات رقمية</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl glass-card text-center space-y-2 border border-pinkNeon/20">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-pinkNeon/10 text-pinkNeon font-bold flex items-center justify-center text-sm">3</div>
+                        <h4 class="font-bold text-xs text-white">3. المعالجة</h4>
+                        <p class="text-[10px] text-slate-400">تصفية الضوضاء ومعايرة القمم (Peaks)</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl glass-card text-center space-y-2 border border-blueNeon/20">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-blueNeon/10 text-blueNeon font-bold flex items-center justify-center text-sm">4</div>
+                        <h4 class="font-bold text-xs text-white">4. التعلم الآلي</h4>
+                        <p class="text-[10px] text-slate-400">مطابقة الأطياف بقواعد البيانات الكيميائية</p>
+                    </div>
+
+                    <div class="p-4 rounded-2xl glass-card text-center space-y-2 border border-emeraldNeon/30">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-emeraldNeon/10 text-emeraldNeon font-bold flex items-center justify-center text-sm">5</div>
+                        <h4 class="font-bold text-xs text-white">5. النتيجة والتفسير</h4>
+                        <p class="text-[10px] text-slate-400">تحديد الهيكل الكيميائي ونسبة اليقين</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 2. TAB: SPECTRAL LIBRARY ==================== -->
+        <section id="tab-spectroscopy" class="tab-content space-y-6 hidden">
+            <div class="text-right">
+                <h2 class="text-xl sm:text-2xl font-bold font-cairo text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wave-square text-cyanNeon"></i>
+                    المكتبة الطيفية التفاعلية (Spectral Library)
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400">استعرض التقنيات الطيفية والمخططات البيانية الحية للقمم والجزيئات</p>
+            </div>
+
+            <!-- Technique Cards -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <button type="button" onclick="loadSpectroscopyChart('IR')" id="btn-IR" class="spec-card-btn text-right p-4 rounded-2xl glass-card border-cyanNeon space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-cyanNeon bg-cyanNeon/10 px-2.5 py-1 rounded-full border border-cyanNeon/20">IR</span>
+                        <i class="fa-solid fa-fingerprint text-slate-400"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-white font-cairo">الأشعة تحت الحمراء</h4>
+                    <p class="text-[11px] text-slate-400">اهتزاز الروابط والمجموعات الوظيفية</p>
+                </button>
+
+                <button type="button" onclick="loadSpectroscopyChart('UVVis')" id="btn-UVVis" class="spec-card-btn text-right p-4 rounded-2xl glass-card border-transparent space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-purpleNeon bg-purpleNeon/10 px-2.5 py-1 rounded-full border border-purpleNeon/20">UV-Vis</span>
+                        <i class="fa-solid fa-sun text-slate-400"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-white font-cairo">الأشعة الفوق بنفسجية والمرئية</h4>
+                    <p class="text-[11px] text-slate-400">امتصاص الضوء والانتقالات الإلكترونية</p>
+                </button>
+
+                <button type="button" onclick="loadSpectroscopyChart('MS')" id="btn-MS" class="spec-card-btn text-right p-4 rounded-2xl glass-card border-transparent space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-pinkNeon bg-pinkNeon/10 px-2.5 py-1 rounded-full border border-pinkNeon/20">MS</span>
+                        <i class="fa-solid fa-weight-hanging text-slate-400"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-white font-cairo">مطيافية الكتلة</h4>
+                    <p class="text-[11px] text-slate-400">مقياس نسبة الكتلة إلى الشحنة (m/z)</p>
+                </button>
+
+                <button type="button" onclick="loadSpectroscopyChart('NMR')" id="btn-NMR" class="spec-card-btn text-right p-4 rounded-2xl glass-card border-transparent space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-emeraldNeon bg-emeraldNeon/10 px-2.5 py-1 rounded-full border border-emeraldNeon/20">NMR</span>
+                        <i class="fa-solid fa-magnet text-slate-400"></i>
+                    </div>
+                    <h4 class="font-bold text-sm text-white font-cairo">الرنين المغناطيسي النووي</h4>
+                    <p class="text-[11px] text-slate-400">توزيع البروتونات والبيئة المغناطيسية</p>
+                </button>
+            </div>
+
+            <!-- Chart Display -->
+            <div class="p-6 rounded-3xl glass-panel border border-cyanNeon/30 space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                        <h3 id="specTitle" class="text-lg font-bold font-cairo text-cyanNeon">مطيافية الأشعة تحت الحمراء (FT-IR)</h3>
+                        <p id="specDesc" class="text-xs text-slate-300 mt-1">عرض النفاذية مقابل الرقم الموجي cm⁻¹ للتعرف على الروابط الكيميائية.</p>
+                    </div>
+                    <span id="specBadge" class="self-start sm:self-auto px-3 py-1 rounded-full bg-cyanNeon/10 text-cyanNeon text-xs font-bold border border-cyanNeon/30">
+                        طيف تفاعلي مباشر
+                    </span>
+                </div>
+
+                <div class="relative w-full h-72 sm:h-96">
+                    <canvas id="spectroscopyChart"></canvas>
+                </div>
+
+                <div id="specDetailsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3"></div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 3. TAB: AI SIMULATOR ==================== -->
+        <section id="tab-simulator" class="tab-content space-y-6 hidden">
+            <div class="text-right">
+                <h2 class="text-xl sm:text-2xl font-bold font-cairo text-white flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-pinkNeon"></i>
+                    المحاكي الرقمي (AI Digital Simulator)
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400">اختر العينة الكيميائية واضغط لبدء الفحص والمسح الطيفي الرقمي فوراً</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-5 rounded-2xl glass-panel border border-cyanNeon/30 space-y-4">
+                        <label class="block text-xs font-bold text-cyanNeon font-cairo uppercase">
+                            <i class="fa-solid fa-vial"></i> اختر العينة للمعاينة الطيفية:
+                        </label>
+
+                        <select id="sampleSelectDropdown" class="w-full bg-slate-900 border border-cyanNeon/40 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-cyanNeon">
+                            <option value="acetone">أسيتون (Acetone) - C3H6O</option>
+                            <option value="ethanol">إيثانول (Ethanol) - C2H5OH</option>
+                            <option value="acetic">حمض الأسيتيك (Acetic Acid) - CH3COOH</option>
+                            <option value="forensic">عينة جنائية مجهولة (Forensic Unknown Sample)</option>
+                            <option value="pollutant">عينة مياه ملوثة (Polluted Water Sample)</option>
+                        </select>
+
+                        <button type="button" id="startScanBtn" onclick="runAISimulation()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyanNeon via-purpleNeon to-pinkNeon text-slate-950 font-bold hover:shadow-[0_0_25px_rgba(0,242,254,0.6)] transition-all flex items-center justify-center gap-2 text-sm">
+                            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                            <span>بدء التحليل بالذكاء الاصطناعي</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-8">
+                    <div class="relative p-6 rounded-3xl glass-panel border border-cyanNeon/30 min-h-[440px] flex flex-col justify-between overflow-hidden">
+                        <div id="laserScanLine" class="laser-line"></div>
+
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-cyanNeon animate-pulse"></span>
+                                <span class="text-xs font-bold font-cairo text-slate-200">نظام التحليل الرقمي المتكامل Core AI v4.2</span>
+                            </div>
+                            <span id="scanStatusBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-800 text-slate-400">جاهز للمسح الطيفي</span>
+                        </div>
+
+                        <!-- Idle State -->
+                        <div id="aiIdleState" class="my-auto text-center py-12 space-y-4">
+                            <div class="w-20 h-20 mx-auto rounded-full bg-cyanNeon/5 border border-cyanNeon/20 flex items-center justify-center text-cyanNeon text-3xl">
+                                <i class="fa-solid fa-atom animate-spin-slow"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold font-cairo text-white">بانتظار بدء المسح الجزيئي</h3>
+                                <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">اضغط على زر الفحص لبدء تحليل القمم الكيميائية وتتبع المجموعات الوظيفية بالذكاء الاصطناعي.</p>
+                            </div>
+                        </div>
+
+                        <!-- Result State -->
+                        <div id="aiResultState" class="hidden space-y-5 py-2">
+                            <div class="flex flex-col sm:flex-row justify-between sm:items-center bg-slate-900/90 p-4 rounded-2xl border border-cyanNeon/30 gap-4">
+                                <div>
+                                    <span class="text-[10px] text-cyanNeon font-bold uppercase">النتيجة المؤكدة للتركيب الجزيئي</span>
+                                    <h3 id="resMoleculeName" class="text-xl font-black font-cairo text-white">أسيتون (Acetone)</h3>
+                                    <p id="resFormula" class="text-xs text-slate-300 font-mono">الصيغة: C3H6O</p>
+                                </div>
+                                <div class="text-left bg-cyanNeon/10 border border-cyanNeon/30 px-4 py-2 rounded-xl">
+                                    <div class="text-[10px] text-slate-400">نسبة اليقين والاعتمادية</div>
+                                    <div id="resConfidence" class="text-2xl font-black text-cyanNeon font-cairo">99.4%</div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 class="text-xs font-bold text-slate-300 font-cairo mb-2 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-fingerprint text-purpleNeon"></i>
+                                    المجموعات الوظيفية المكتشفة:
+                                </h4>
+                                <div id="resPeaksList" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-1.5">
+                                <h4 class="text-xs font-bold text-slate-300 font-cairo">التوصيف الكيميائي والرقمي:</h4>
+                                <p id="resDescription" class="text-xs text-slate-300 leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-800 pt-3 flex justify-between items-center text-[11px] text-slate-400">
+                            <span>مكتبة البيانات المرجعية: NIST Spectral DB</span>
+                            <span id="timestampScan">--:--:--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 4. TAB: COMPARISON & STATISTICS ==================== -->
+        <section id="tab-comparison" class="tab-content space-y-6 hidden">
+            <div class="text-right">
+                <h2 class="text-xl sm:text-2xl font-bold font-cairo text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-blueNeon"></i>
+                    المقارنة والإحصاء (Comparison & Statistics)
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400">مقارنة بالأرقام بين الكيمياء التقليدية اليدوية والكيمياء الرقمية المدعومة بالذكاء الاصطناعي</p>
+            </div>
+
+            <div class="p-6 rounded-3xl glass-panel border border-cyanNeon/30 space-y-4">
+                <h3 class="text-base font-bold font-cairo text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-cyanNeon"></i>
+                    مخطط الأداء المقارن (الوقت، الدقة، التكلفة)
+                </h3>
+                <div class="relative w-full h-80 sm:h-96">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-5 rounded-2xl glass-card space-y-3 border-l-4 border-cyanNeon">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-cyanNeon">اختصار الوقت والمجهود</span>
+                        <i class="fa-solid fa-stopwatch text-cyanNeon text-lg"></i>
+                    </div>
+                    <div class="text-xs text-slate-300 space-y-1">
+                        <div>التحليل التقليدي: <span class="text-rose-400 font-bold">48 - 72 ساعة</span></div>
+                        <div>الكيمياء الرقمية AI: <span class="text-cyanNeon font-bold">0.2 ثانية</span></div>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div class="bg-cyanNeon h-full w-[99%]"></div>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl glass-card space-y-3 border-l-4 border-purpleNeon">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-purpleNeon">رفع مستوى الدقة</span>
+                        <i class="fa-solid fa-bullseye text-purpleNeon text-lg"></i>
+                    </div>
+                    <div class="text-xs text-slate-300 space-y-1">
+                        <div>التحليل التقليدي: <span class="text-amber-400 font-bold">82%</span></div>
+                        <div>الكيمياء الرقمية AI: <span class="text-purpleNeon font-bold">99.4%</span></div>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div class="bg-purpleNeon h-full w-[99%]"></div>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl glass-card space-y-3 border-l-4 border-pinkNeon">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-pinkNeon">تقليل التكلفة والكواشف</span>
+                        <i class="fa-solid fa-coins text-pinkNeon text-lg"></i>
+                    </div>
+                    <div class="text-xs text-slate-300 space-y-1">
+                        <div>التكلفة الكيميائية: <span class="text-rose-400 font-bold">مرتفعة جداً</span></div>
+                        <div>التحليل الرقمي AI: <span class="text-pinkNeon font-bold">منخفضة جداً</span></div>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div class="bg-pinkNeon h-full w-[85%]"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ==================== 5. TAB: SCIENTIFIC APPLICATIONS ==================== -->
+        <section id="tab-applications" class="tab-content space-y-6 hidden">
+            <div class="text-right">
+                <h2 class="text-xl sm:text-2xl font-bold font-cairo text-white flex items-center gap-2">
+                    <i class="fa-solid fa-capsules text-emeraldNeon"></i>
+                    التطبيقات العلمية (Scientific Applications)
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400">استخدامات البيانات الطيفية الرقمية في القطاعات الصناعية والجنائية والبيئية</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Pharma -->
+                <div class="p-6 rounded-3xl glass-panel border border-cyanNeon/30 space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-cyanNeon/10 border border-cyanNeon/30 flex items-center justify-center text-cyanNeon text-2xl">
+                        <i class="fa-solid fa-pills"></i>
+                    </div>
+                    <h3 class="text-lg font-bold font-cairo text-white">الصناعات الدوائية</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        تُمكّن الكيمياء الرقمية الشركات الدوائية من التنبؤ بنقاء المركبات، واكتشاف الأدوية وتصميم الجرعات في وقت قياسي دون شوائب.
+                    </p>
+                    <ul class="text-[11px] text-slate-400 space-y-1.5 pt-2 border-t border-slate-800">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyanNeon"></i> تسريع اكتشاف المركبات الفعالة</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-cyanNeon"></i> فحص النقاء والجودة الجزيئية</li>
+                    </ul>
+                </div>
+
+                <!-- Forensics -->
+                <div class="p-6 rounded-3xl glass-panel border border-amber-500/30 space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 text-2xl">
+                        <i class="fa-solid fa-magnifying-glass-glass"></i>
+                    </div>
+                    <h3 class="text-lg font-bold font-cairo text-white">الأدلة الجنائية والصناعات الغذائية</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        فحص العينات المجهولة المأخوذة من مسرح الجريمة ومطابقة الأطياف بالسموم والمواد الكيميائية بدقة مطلقة، وكشف الغش الغذائي.
+                    </p>
+                    <ul class="text-[11px] text-slate-400 space-y-1.5 pt-2 border-t border-slate-800">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-amber-400"></i> التعرف على السموم والمواد المشبوهة</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-amber-400"></i> كشف خلط الأغذية والزيوت المغشوشة</li>
+                    </ul>
+                </div>
+
+                <!-- Environmental -->
+                <div class="p-6 rounded-3xl glass-panel border border-emeraldNeon/30 space-y-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emeraldNeon/10 border border-emeraldNeon/30 flex items-center justify-center text-emeraldNeon text-2xl">
+                        <i class="fa-solid fa-leaf"></i>
+                    </div>
+                    <h3 class="text-lg font-bold font-cairo text-white">حماية البيئة والمياه</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        مراقبة الانبعاثات الكيميائية الضارة ورصد الجسيمات البلاستيكية الدقيقة والمعادن الثقيلة السامة في مصادر المياه.
+                    </p>
+                    <ul class="text-[11px] text-slate-400 space-y-1.5 pt-2 border-t border-slate-800">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emeraldNeon"></i> رصد البلاستيك الدقيق Microplastics</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emeraldNeon"></i> قياس نسب المعادن السامة (الرصاص والزئبق)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER WITH STRICT CREDITS ONLY -->
+    <footer class="mt-12 glass-panel border-t border-cyanNeon/25 py-6 px-4 text-center z-10 relative">
+        <div class="max-w-7xl mx-auto space-y-2">
+            <div class="text-sm sm:text-base font-bold font-cairo text-white">
+                إعداد المهندستين: <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyanNeon via-purpleNeon to-pinkNeon text-glow">غزلان المشعوف وليان الميموني</span>
+            </div>
+            <p class="text-xs text-cyanNeon font-bold font-cairo">الصف الثالث الثانوي – 3/8</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        let activeSpecChart = null;
+        let activeCompChart = null;
+
+        const specPresets = {
+            IR: {
+                title: 'مطيافية الأشعة تحت الحمراء (FT-IR)',
+                desc: 'عرض النفاذية % مقابل الرقم الموجي cm⁻¹ للتعرف على اهتزاز الروابط والمجموعات الوظيفية.',
+                badge: 'IR Spectrum',
+                labels: [4000, 3500, 3000, 2500, 2000, 1700, 1500, 1000, 500],
+                data: [98, 95, 40, 96, 95, 15, 80, 45, 90],
+                borderColor: '#00f2fe',
+                bgColor: 'rgba(0, 242, 254, 0.12)',
+                peaks: [
+                    { name: 'رابطة الكربونيل C=O', pos: '1700 cm⁻¹', desc: 'قمة امتصاص حادة تميز الكيتونات والأحماض' },
+                    { name: 'رابطة C-H Aliphatic', pos: '2960 cm⁻¹', desc: 'اهتزاز الامتداد الهيدروكربوني' },
+                    { name: 'بصمة المركب Fingerprint', pos: '1000 cm⁻¹', desc: 'الاهتزاز الهيكلي الفردي للجزيء' }
+                ]
+            },
+            UVVis: {
+                title: 'الأشعة الفوق بنفسجية والمرئية (UV-Vis)',
+                desc: 'عرض الامتصاصية مقابل الطول الموجي (nm) للتحري عن الانتقالات الإلكترونية والروابط المزدوجة.',
+                badge: 'UV-Vis Spectrum',
+                labels: [200, 250, 280, 300, 350, 400, 450, 500],
+                data: [0.1, 0.4, 1.45, 0.8, 0.2, 0.05, 0.02, 0.0],
+                borderColor: '#a855f7',
+                bgColor: 'rgba(168, 85, 247, 0.15)',
+                peaks: [
+                    { name: 'أقصى امتصاص λmax', pos: '280 nm', desc: 'انتقال إلكتروني من n ➔ π*' },
+                    { name: 'قطع المذيب Cutoff', pos: '210 nm', desc: 'حد الامتصاص الصافي' },
+                    { name: 'الاقتران الجزيئي', pos: '300-350 nm', desc: 'تأثير الإزاحة الحمراء Redshift' }
+                ]
+            },
+            MS: {
+                title: 'مطيافية الكتلة (Mass Spectrometry - MS)',
+                desc: 'عرض الوفرة النسبية مقابل نسبة الكتلة إلى الشحنة (m/z) لتحديد الوزن الجزيئي والكتلة.',
+                badge: 'MS Peak Spectrum',
+                labels: [15, 27, 43, 58, 60, 75],
+                data: [25, 40, 100, 75, 5, 0],
+                type: 'bar',
+                borderColor: '#ec4899',
+                bgColor: 'rgba(236, 72, 153, 0.6)',
+                peaks: [
+                    { name: 'القمة الأساسية Base Peak', pos: 'm/z = 43', desc: 'الشظية الأيونية الأكثر استقراراً' },
+                    { name: 'الأيون الجزيئي M+', pos: 'm/z = 58', desc: 'الوزن الجزيئي المباشر للمركب' },
+                    { name: 'شظية الميثيل', pos: 'm/z = 15', desc: 'أيون تفكك الميثيل [CH3]+' }
+                ]
+            },
+            NMR: {
+                title: 'الرنين المغناطيسي النووي (1H-NMR)',
+                desc: 'عرض الإزاحة الكيميائية (ppm) لتحديد البيئة المغناطيسية لبروتونات الهيدروجين بالكربون.',
+                badge: 'NMR Shift Spectrum',
+                labels: [10, 8, 7.2, 5, 2.1, 1.2, 0],
+                data: [0, 0, 0.1, 0, 0.95, 0.05, 0],
+                borderColor: '#10b981',
+                bgColor: 'rgba(16, 185, 129, 0.15)',
+                peaks: [
+                    { name: 'إشارة الكيتون الميثيلي', pos: '2.1 ppm', desc: 'بروتونات مجاورة لمجموعة الكربونيل' },
+                    { name: 'مرجع TMS الصفري', pos: '0.0 ppm', desc: 'خط المعايرة لرباعي ميثيل السيلان' },
+                    { name: 'تعددية الإشارة', pos: 'Singlet Peak', desc: 'بيئة هيدروجينية متكافئة' }
+                ]
+            }
+        };
+
+        const sampleDb = {
+            acetone: {
+                name: "أسيتون (Acetone)",
+                formula: "C3H6O",
+                confidence: "99.4%",
+                description: "تم الكشف عن قمة امتصاص حادة لـ C=O عند 1715 cm⁻¹ مع إشارة أحادية سريعة عند 2.1 ppm في NMR. كيتون نقي عالي الجودة.",
+                peaks: [
+                    { text: "رابطة C=O امتصاص حاد عند 1715 cm⁻¹", color: "border-cyanNeon" },
+                    { text: "أيون كتلوي أساسي عند m/z = 43", color: "border-purpleNeon" },
+                    { text: "غياب امتصاص O-H فوق 3200 cm⁻¹", color: "border-emeraldNeon" }
+                ]
+            },
+            ethanol: {
+                name: "إيثانول (Ethanol)",
+                formula: "C2H5OH",
+                confidence: "98.9%",
+                description: "نطاق امتصاص O-H كحولي عريض ومميز عند 3350 cm⁻¹ مع امتصاص C-O عند 1050 cm⁻¹.",
+                peaks: [
+                    { text: "O-H Broad band عند 3350 cm⁻¹", color: "border-cyanNeon" },
+                    { text: "C-O stretch عند 1050 cm⁻¹", color: "border-purpleNeon" },
+                    { text: "تضاعف إشارة الميثيل C2H5 في NMR", color: "border-pinkNeon" }
+                ]
+            },
+            acetic: {
+                name: "حمض الأسيتيك (Acetic Acid)",
+                formula: "CH3COOH",
+                confidence: "99.1%",
+                description: "يظهر الطيف تداخل نطاق O-H الحمضي العريض (2500-3300 cm⁻¹) مع قمة C=O الكربونيل عند 1710 cm⁻¹.",
+                peaks: [
+                    { text: "O-H Carboxylic Acid Broad band", color: "border-cyanNeon" },
+                    { text: "C=O stretch عند 1710 cm⁻¹", color: "border-purpleNeon" },
+                    { text: "إشارة بروتون الحمض في NMR عند 11.5 ppm", color: "border-emeraldNeon" }
+                ]
+            },
+            forensic: {
+                name: "عينة جنائية مجهولة (Forensic Unknown Sample)",
+                formula: "C17H21NO4 (مطابقة جنائية)",
+                confidence: "99.2%",
+                description: "إنذار الأدلة الجنائية! تم فك شفرة المركب المجهول ومطابقته رقمياً مع مرجعيات الأدوية والسموم الجنائية.",
+                peaks: [
+                    { text: "Ester C=O stretch عند 1728 cm⁻¹", color: "border-pinkNeon" },
+                    { text: "Aromatic Ring C-H عند 3030 cm⁻¹", color: "border-pinkNeon" },
+                    { text: "MS Fragment peak عند m/z = 182", color: "border-amber-400" }
+                ]
+            },
+            pollutant: {
+                name: "عينة مياه ملوثة (Polluted Water Sample)",
+                formula: "ملوث مبيدات فوسفورية (Parathion)",
+                confidence: "97.5%",
+                description: "التحليل الطيفي الرقمي للماء كشف عن وجود بقايا مبيدات فوسفورية سامة تتجاوز النسبة البيئية المسموح بها.",
+                peaks: [
+                    { text: "P=S stretch characteristic peak", color: "border-emeraldNeon" },
+                    { text: "NO2 asymmetric stretch عند 1525 cm⁻¹", color: "border-amber-400" },
+                    { text: "تركيز الملوث يتجاوز الحد المسموح (4.5 PPM)", color: "border-pinkNeon" }
+                ]
+            }
+        };
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isOpen = !sidebar.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.add('opacity-0', 'pointer-events-none');
+            } else {
+                sidebar.classList.remove('translate-x-full');
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-cyanNeon/10', 'text-cyanNeon', 'border-r-4', 'border-cyanNeon');
+                btn.classList.add('text-slate-300');
+            });
+
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+
+            const activeNav = document.getElementById('nav-' + tabId);
+            if (activeNav) {
+                activeNav.classList.add('bg-cyanNeon/10', 'text-cyanNeon', 'border-r-4', 'border-cyanNeon');
+                activeNav.classList.remove('text-slate-300');
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar.classList.contains('translate-x-full')) {
+                toggleSidebar();
+            }
+
+            if (tabId === 'spectroscopy' && !activeSpecChart) {
+                loadSpectroscopyChart('IR');
+            } else if (tabId === 'comparison' && !activeCompChart) {
+                renderComparisonChart();
+            }
+        }
+
+        function loadSpectroscopyChart(techKey) {
+            const preset = specPresets[techKey];
+            if (!preset) return;
+
+            document.querySelectorAll('.spec-card-btn').forEach(btn => btn.classList.replace('border-cyanNeon', 'border-transparent'));
+            document.getElementById('btn-' + techKey)?.classList.replace('border-transparent', 'border-cyanNeon');
+
+            document.getElementById('specTitle').innerText = preset.title;
+            document.getElementById('specDesc').innerText = preset.desc;
+            document.getElementById('specBadge').innerText = preset.badge;
+
+            const detailsGrid = document.getElementById('specDetailsGrid');
+            detailsGrid.innerHTML = '';
+            preset.peaks.forEach(p => {
+                detailsGrid.innerHTML += `
+                    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-white">${p.name}</span>
+                            <span class="text-cyanNeon font-mono text-[11px] font-bold">${p.pos}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-400">${p.desc}</p>
+                    </div>
+                `;
+            });
+
+            const ctx = document.getElementById('spectroscopyChart').getContext('2d');
+            if (activeSpecChart) activeSpecChart.destroy();
+
+            activeSpecChart = new Chart(ctx, {
+                type: preset.type || 'line',
+                data: {
+                    labels: preset.labels,
+                    datasets: [{
+                        label: preset.badge,
+                        data: preset.data,
+                        borderColor: preset.borderColor,
+                        backgroundColor: preset.bgColor,
+                        borderWidth: 2.5,
+                        tension: 0.35,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: preset.borderColor
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: '#0D1526', titleColor: '#00F2FE', bodyColor: '#FFF' }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+        }
+
+        function runAISimulation() {
+            const dropdown = document.getElementById('sampleSelectDropdown');
+            const sample = sampleDb[dropdown.value];
+            if (!sample) return;
+
+            const scanLine = document.getElementById('laserScanLine');
+            const statusBadge = document.getElementById('scanStatusBadge');
+            const idleState = document.getElementById('aiIdleState');
+            const resultState = document.getElementById('aiResultState');
+            const startBtn = document.getElementById('startScanBtn');
+
+            scanLine.style.display = 'block';
+            statusBadge.innerText = 'جاري المسح الكيميائي ومقارنة البيانات...';
+            statusBadge.className = 'text-[11px] px-2.5 py-1 rounded-full bg-cyanNeon/20 text-cyanNeon font-bold animate-pulse';
+            startBtn.disabled = true;
+
+            setTimeout(() => {
+                scanLine.style.display = 'none';
+                statusBadge.innerText = 'اكتمل التحليل الكيميائي بنجاح ✓';
+                statusBadge.className = 'text-[11px] px-2.5 py-1 rounded-full bg-emeraldNeon/20 text-emeraldNeon font-bold';
+
+                idleState.classList.add('hidden');
+                resultState.classList.remove('hidden');
+
+                document.getElementById('resMoleculeName').innerText = sample.name;
+                document.getElementById('resFormula').innerText = `الصيغة: ${sample.formula}`;
+                document.getElementById('resConfidence').innerText = sample.confidence;
+                document.getElementById('resDescription').innerText = sample.description;
+
+                const peaksList = document.getElementById('resPeaksList');
+                peaksList.innerHTML = '';
+                sample.peaks.forEach(pk => {
+                    peaksList.innerHTML += `
+                        <div class="p-2.5 rounded-xl bg-slate-900 border-l-4 ${pk.color} text-xs text-slate-200 flex items-center gap-2">
+                            <i class="fa-solid fa-atom text-cyanNeon text-[10px]"></i>
+                            <span>${pk.text}</span>
+                        </div>
+                    `;
+                });
+
+                const now = new Date();
+                document.getElementById('timestampScan').innerText = `الوقت: ${now.toLocaleTimeString('ar-SA')}`;
+                startBtn.disabled = false;
+            }, 1800);
+        }
+
+        function renderComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            activeCompChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['الزمن (بالساعات)', 'نسبة الدقة (%)', 'التكلفة التشغيلية (مؤشر 100)'],
+                    datasets: [
+                        {
+                            label: 'التحليل التقليدي اليدوي',
+                            data: [48, 82, 90],
+                            backgroundColor: 'rgba(236, 72, 153, 0.75)',
+                            borderColor: '#EC4899',
+                            borderWidth: 1.5,
+                            borderRadius: 8
+                        },
+                        {
+                            label: 'الكيمياء الرقمية والذكاء الاصطناعي',
+                            data: [0.05, 99.4, 15],
+                            backgroundColor: 'rgba(0, 242, 254, 0.85)',
+                            borderColor: '#00F2FE',
+                            borderWidth: 1.5,
+                            borderRadius: 8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#F8FAFC', font: { family: 'Tajawal' } } },
+                        tooltip: { backgroundColor: '#0D1526', borderColor: 'rgba(0,242,254,0.3)', borderWidth: 1 }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+        }
+
+        window.onload = function() {
+            switchTab('home');
+        };
+    </script>
+</body>
+</html>
